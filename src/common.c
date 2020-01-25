@@ -1867,7 +1867,7 @@ __declspec(dllexport) void *new_dll_graphics_driver(void *game_object)
 	DEVMODE dmScreenSettings;
 
 	open_applog("app.log");
-	info("FF7/FF8 OpenGL driver version " VERSION PRERELEASE_WARNING "\n");
+	info("Custom 7th Heaven FF7 Game Driver version " VERSION PRERELEASE_WARNING "\n");
 
 	version = get_version();
 

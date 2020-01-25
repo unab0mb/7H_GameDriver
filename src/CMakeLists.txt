@@ -75,7 +75,7 @@ set_target_properties(ff7music PROPERTIES SUFFIX ".fgp")
 install(TARGETS ff7_opengl RUNTIME DESTINATION bin)
 install(TARGETS ffmpeg_movies RUNTIME DESTINATION bin/plugins)
 install(TARGETS vgmstream_music RUNTIME DESTINATION bin/plugins)
-install(TARGETS ff7music RUNTIME DESTINATION bin/plugins)
+#install(TARGETS ff7music RUNTIME DESTINATION bin/plugins)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 	install(FILES $<TARGET_PDB_FILE:ff7_opengl> DESTINATION bin OPTIONAL)
@@ -84,5 +84,5 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInf
 	install(FILES $<TARGET_PDB_FILE:ff7music> DESTINATION bin/plugins OPTIONAL)
 endif()
 
-install(FILES ../misc/ff7_opengl_${RELEASE_TYPE}.cfg DESTINATION bin OPTIONAL RENAME ff7_opengl.cfg)
-install(FILES ../misc/ff7_opengl.reg DESTINATION bin OPTIONAL)
+install(FILES ../misc/ff7_opengl_${RELEASE_TYPE}.cfg DESTINATION bin OPTIONAL RENAME 7H_GameDriver.cfg)
+#install(FILES ../misc/ff7_opengl.reg DESTINATION bin OPTIONAL)
