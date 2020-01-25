@@ -169,7 +169,7 @@ LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS *ep)
 
 	if(!ff8)
 	{
-		MessageBoxA(0, "Sorry, an unexpected error has occurred.\n\nCrash.dmp was saved to your FF7 folder.\nEmergency game save was saved to save\crash.ff7.\n\n"
+		MessageBoxA(0, "Sorry, an unexpected error has occurred.\n\nCrash.dmp was saved to your FF7 folder.\nEmergency game save was saved to save/crash.ff7.\n\n"
 			"Please include those files and the APP.log file from your FF7 folder when reporting the problem to the developers at\nhttps://github.com/FFT-Hackers/FF7_OpenGL/issues", "The Game Driver Has Crashed!", MB_OK);
 
 		save = true;
