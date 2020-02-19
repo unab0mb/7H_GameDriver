@@ -7,7 +7,7 @@ endif()
 
 ExternalProject_Add(
 	vgmstream
-	URL                 "https://github.com/FFT-Hackers/vgmstream/releases/download/1.0.0/vgmstream-v1.0.0_${VGMSTREAM_RELEASE}.zip"
+	URL                 "https://github.com/unab0mb/vgmstream/releases/download/1.0.0/vgmstream-v1.0.0_${VGMSTREAM_RELEASE}.zip"
 	INSTALL_DIR			"${CMAKE_BINARY_DIR}/vendor"
 	CONFIGURE_COMMAND	""
 	BUILD_COMMAND		""

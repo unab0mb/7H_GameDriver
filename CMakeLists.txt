@@ -22,7 +22,7 @@ if (SUPERBUILD)
 	add_subdirectory(third_party)
 	include(ExternalProject)
 	ExternalProject_Add(
-		ff7_opengl
+		7H_GameDriver
 		SOURCE_DIR	"${CMAKE_SOURCE_DIR}"
 		CMAKE_ARGS
 			"-DSUPERBUILD=OFF"
@@ -38,7 +38,7 @@ if (SUPERBUILD)
 		vgmstream
 	)
 	ExternalProject_Add_Step(
-		ff7_opengl
+		7H_GameDriver
 		reconfigure
 		COMMAND ${CMAKE_COMMAND} -E echo "Forcing a superbuild reconfigure"
 		DEPENDEES download
@@ -48,6 +48,6 @@ if (SUPERBUILD)
 	return()
 endif()
 
-project(FF7_OpenGL)
+project(7H_GameDriver)
 add_subdirectory(src)
 

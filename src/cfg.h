@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,8 +26,8 @@
 #include "types.h"
 
 extern char *mod_path;
-extern char *movie_plugin;
-extern char *music_plugin;
+extern bool use_external_movie;
+extern bool use_external_music;
 extern bool save_textures;
 extern char *traced_texture;
 extern char *vert_source;
@@ -44,7 +44,9 @@ extern bool trace_loaders;
 extern bool trace_lights;
 extern bool vertex_log;
 extern bool show_fps;
+extern bool show_fps_titlebar;
 extern bool show_stats;
+extern bool show_stats_titlebar;
 extern uint window_size_x;
 extern uint window_size_y;
 extern int window_pos_x;

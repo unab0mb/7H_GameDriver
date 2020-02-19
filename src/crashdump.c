@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -169,8 +169,8 @@ LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS *ep)
 
 	if(!ff8)
 	{
-		MessageBoxA(0, "Sorry, an unexpected error has occurred.\n\nCrash.dmp was saved to your FF7 folder.\nEmergency game save was saved to save/crash.ff7.\n\n"
-			"Please include those files and the APP.log file from your FF7 folder when reporting the problem to the developers at\nhttps://github.com/FFT-Hackers/FF7_OpenGL/issues", "The Game Driver Has Crashed!", MB_OK);
+		MessageBoxA(0, "Sorry, an unexpected error has occurred.\n\nThis can sometimes be caused by a problem in a mod.\n\nTry turning off all of your mods and re-enable them one at a time to see if the crash still occurs. Report the issue to the mod author if necessary.\n\nIf you are using a mod with very high resolution textures, you may have run out of memory. Try a lower resolution mod if available, or try increasing your texture memory.\n\nAPP.LOG and Crash.dmp have been saved to your FF7 folder.\nEmergency game save was saved to save/crash.ff7.\n\n"
+			"Please include those files when reporting the problem to the developers at\nhttps://github.com/unab0mb/7H_GameDriver/issues", "The Game Driver Has Crashed!", MB_OK);
 
 		save = true;
 	}

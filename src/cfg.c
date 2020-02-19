@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,8 +31,8 @@
 
 // configuration variables with their default values
 char *mod_path;
-char *movie_plugin;
-char *music_plugin;
+bool use_external_movie = true;
+bool use_external_music = true;
 bool save_textures = false;
 char *traced_texture;
 char *vert_source;
@@ -49,7 +49,9 @@ bool trace_loaders = false;
 bool trace_lights = false;
 bool vertex_log = false;
 bool show_fps = false;
+bool show_fps_titlebar = false;
 bool show_stats = false;
+bool show_stats_titlebar = false;
 uint window_size_x = 0;
 uint window_size_y = 0;
 int window_pos_x = 0;
@@ -96,8 +98,8 @@ bool movie_sync_debug = false;
 
 cfg_opt_t opts[] = {
 		CFG_SIMPLE_STR("mod_path", &mod_path),
-		CFG_SIMPLE_STR("movie_plugin", &movie_plugin),
-		CFG_SIMPLE_STR("music_plugin", &music_plugin),
+		CFG_SIMPLE_BOOL("use_external_movie", &use_external_movie),
+		CFG_SIMPLE_BOOL("use_external_music", &use_external_music),
 		CFG_SIMPLE_BOOL("save_textures", &save_textures),
 		CFG_SIMPLE_STR("traced_texture", &traced_texture),
 		CFG_SIMPLE_STR("vert_source", &vert_source),
@@ -114,7 +116,9 @@ cfg_opt_t opts[] = {
 		CFG_SIMPLE_BOOL("trace_lights", &trace_lights),
 		CFG_SIMPLE_BOOL("vertex_log", &vertex_log),
 		CFG_SIMPLE_BOOL("show_fps", &show_fps),
+		CFG_SIMPLE_BOOL("show_fps_titlebar", &show_fps_titlebar),
 		CFG_SIMPLE_BOOL("show_stats", &show_stats),
+		CFG_SIMPLE_BOOL("show_stats_titlebar", &show_stats_titlebar),
 		CFG_SIMPLE_INT("window_size_x", &window_size_x),
 		CFG_SIMPLE_INT("window_size_y", &window_size_y),
 		CFG_SIMPLE_INT("window_pos_x", &window_pos_x),
@@ -182,9 +186,7 @@ void read_cfg()
 	cfg_t *cfg;
 
 	mod_path = strdup("");
-	if(!ff8) movie_plugin = strdup("plugins/7H_ffmpeg_movies.fgp");
-	else movie_plugin = strdup("");
-	music_plugin = strdup("");
+	use_external_movie = !ff8;
 	vert_source = strdup("shaders/main.vert");
 	frag_source = strdup("shaders/main.frag");
 	yuv_source = strdup("shaders/yuv.frag");

@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ static struct game_mode ff8_modes[] = {
 	{FF8_MODE_11,            "MODE_11",            MODE_UNKNOWN,       true },
 	{FF8_MODE_INTRO,         "MODE_INTRO",         MODE_INTRO,         true },
 	{FF8_MODE_100,           "MODE_100",           MODE_UNKNOWN,       true },
-	{-1,                     "MODE_BATTLE",        MODE_BATTLE,        true },
+	{FF8_MODE_BATTLE,        "MODE_BATTLE",        MODE_BATTLE,        true },
 };
 
 static unsigned char ff8_font_map[256] = {

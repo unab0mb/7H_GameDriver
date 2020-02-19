@@ -8,7 +8,7 @@ endif()
 
 ExternalProject_Add(
 	ffmpeg
-	URL                 "https://github.com/FFT-Hackers/ffmpegCI/releases/download/4.2.1/ffmpeg-v4.2.1.0.zip"
+	URL                 "https://github.com/unab0mb/ffmpegCI/releases/download/4.2.1.3/ffmpeg-v4.2.1.0.zip"
 	INSTALL_DIR			"${CMAKE_BINARY_DIR}/vendor"
 	CONFIGURE_COMMAND	""
 	BUILD_COMMAND		""

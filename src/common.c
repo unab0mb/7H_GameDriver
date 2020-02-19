@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -318,7 +318,7 @@ void common_cleanup(struct game_obj *game_object)
 
 	unreplace_functions();
 
-	if(strlen(music_plugin) > 0) stop_midi();
+	if(use_external_music) stop_midi();
 }
 
 // unused and unnecessary
@@ -357,7 +357,7 @@ void common_flip(struct game_obj *game_object)
 	// draw any z-sorted content now that we're done drawing everything else
 	gl_draw_deferred();
 
-	if(show_stats)
+	if(show_stats || show_stats_titlebar)
 	{
 		PROCESS_MEMORY_COUNTERS_EX pmc;
 		SIZE_T ram_size;
@@ -367,9 +367,9 @@ void common_flip(struct game_obj *game_object)
 		GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS *)&pmc, sizeof(pmc));
 		ram_size = pmc.WorkingSetSize;
 
-		if (fullscreen)
+		if (show_stats)
 		{
-			gl_draw_text(8, 8, text_colors[TEXTCOLOR_PINK], 255,
+			gl_draw_text(8, 8, text_colors[TEXTCOLOR_PINK], 127,
 #ifdef HEAP_DEBUG
 				"Allocations: %u\n"
 #endif
@@ -404,7 +404,7 @@ void common_flip(struct game_obj *game_object)
 				stats.timer
 			);
 		}
-		else
+		if (show_stats_titlebar)
 		{
 			char tmp[768];
 			sprintf_s(tmp, 768, " | RAM: %u MB | nTex: %u | nExt.Tex: %u | Cache: %u MB", ram_size / (1024 * 1024), stats.texture_count, stats.external_textures, (stats.ext_cache_size / (1024 * 1024)));
@@ -412,14 +412,13 @@ void common_flip(struct game_obj *game_object)
 		}
 	}
 
-	if(show_fps)
-	{
-		if (fullscreen)
+		if (show_fps)
 		{
 			// average last two seconds and round up for our FPS counter
-			gl_draw_text(width - (2 * 16 + 8), 8, text_colors[TEXTCOLOR_YELLOW], 255, "%2i", (fps_counters[1] + fps_counters[2] + 1) / 2);
+			gl_draw_text(width - (2 * 16 + 8), 8, text_colors[TEXTCOLOR_YELLOW], 127, "%2i", (fps_counters[1] + fps_counters[2] + 1) / 2);
 		}
-		else
+
+		if (show_fps_titlebar)
 		{
 			char tmp[64];
 			sprintf_s(tmp, 64, " | FPS: %2i", (fps_counters[1] + fps_counters[2] + 1) / 2);
@@ -435,7 +434,6 @@ void common_flip(struct game_obj *game_object)
 			fps_counters[1] = fps_counters[0];
 			fps_counters[0] = 0;
 		}
-	}
 
 	if (!fullscreen)
 		SetWindowText(hwnd, newWindowTitle);

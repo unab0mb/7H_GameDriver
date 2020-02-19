@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -450,5 +450,5 @@ struct ff8_gfx_driver *ff8_load_driver(struct ff8_game_obj *game_object)
 
 void ff8_post_init()
 {
-	if(strlen(movie_plugin) > 0) movie_init();
+	if(use_external_movie) movie_init();
 }

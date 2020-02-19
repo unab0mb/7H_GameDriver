@@ -1,29 +1,13 @@
-#include <windows.h>
-#include <dsound.h>
-#include <vgmstream.h>
-#include <math.h>
-#include <process.h>
-
-#include "types.h"
+#include "music.h"
 
 static CRITICAL_SECTION mutex;
 
 #define AUDIO_BUFFER_SIZE 5
 
-static IDirectSound **directsound;
-
-const char *basedir;
-
-// logging functions, printf-style, trace output is not visible in a release build of the driver
-void (*trace)(char *, ...);
-void (*info)(char *, ...);
-void (*glitch)(char *, ...);
-void (*error)(char *, ...);
-
-static VGMSTREAM *vgmstream[100];
+static VGMSTREAM* vgmstream[100];
 static uint current_id;
 static uint sound_buffer_size;
-static IDirectSoundBuffer *sound_buffer;
+static IDirectSoundBuffer* sound_buffer;
 static uint write_pointer;
 static uint bytes_written;
 static uint bytespersample;
@@ -37,14 +21,14 @@ static int trans_volume;
 
 static int crossfade_time;
 static uint crossfade_id;
-static char *crossfade_midi;
+static char* crossfade_midi;
 
 static int master_volume;
 static int song_volume;
 
 void apply_volume()
 {
-	if(sound_buffer && *directsound)
+	if (sound_buffer && *common_externals.directsound)
 	{
 		int volume = (((song_volume * 100) / 127) * master_volume) / 100;
 		float decibel = 20.0f * log10f(volume / 100.0f);
@@ -55,21 +39,21 @@ void apply_volume()
 
 void buffer_bytes(uint bytes)
 {
-	if(sound_buffer && bytes)
+	if (sound_buffer && bytes)
 	{
-		sample *ptr1;
-		sample *ptr2;
+		sample* ptr1;
+		sample* ptr2;
 		uint bytes1;
 		uint bytes2;
-		sample *buffer = malloc(bytes);
+		sample* buffer = malloc(bytes);
 
-		if(vgmstream[current_id]->loop_flag) render_vgmstream(buffer, bytes / bytespersample, vgmstream[current_id]);
+		if (vgmstream[current_id]->loop_flag) render_vgmstream(buffer, bytes / bytespersample, vgmstream[current_id]);
 		else
 		{
 			uint render_bytes = (vgmstream[current_id]->num_samples - vgmstream[current_id]->current_sample) * bytespersample;
 
-			if(render_bytes >= bytes) render_vgmstream(buffer, bytes / bytespersample, vgmstream[current_id]);
-			if(render_bytes < bytes)
+			if (render_bytes >= bytes) render_vgmstream(buffer, bytes / bytespersample, vgmstream[current_id]);
+			if (render_bytes < bytes)
 			{
 				render_vgmstream(buffer, render_bytes / bytespersample, vgmstream[current_id]);
 
@@ -77,12 +61,12 @@ void buffer_bytes(uint bytes)
 			}
 		}
 
-		if(IDirectSoundBuffer_Lock(sound_buffer, write_pointer, bytes, &ptr1, &bytes1, &ptr2, &bytes2, 0)) error("couldn't lock sound buffer\n");
+		if (IDirectSoundBuffer_Lock(sound_buffer, write_pointer, bytes, &ptr1, &bytes1, &ptr2, &bytes2, 0)) error("couldn't lock sound buffer\n");
 
 		memcpy(ptr1, buffer, bytes1);
 		memcpy(ptr2, &buffer[bytes1 / sizeof(sample)], bytes2);
 
-		if(IDirectSoundBuffer_Unlock(sound_buffer, ptr1, bytes1, ptr2, bytes2)) error("couldn't unlock sound buffer\n");
+		if (IDirectSoundBuffer_Unlock(sound_buffer, ptr1, bytes1, ptr2, bytes2)) error("couldn't unlock sound buffer\n");
 
 		write_pointer = (write_pointer + bytes1 + bytes2) % sound_buffer_size;
 		bytes_written += bytes1 + bytes2;
@@ -93,12 +77,12 @@ void buffer_bytes(uint bytes)
 
 void cleanup()
 {
-	if(sound_buffer && *directsound) IDirectSoundBuffer_Release(sound_buffer);
+	if (sound_buffer && *common_externals.directsound) IDirectSoundBuffer_Release(sound_buffer);
 
 	sound_buffer = 0;
 }
 
-void load_song(char *midi, uint id)
+void load_song(char* midi, uint id)
 {
 	char tmp[512];
 	WAVEFORMATEX sound_format;
@@ -106,7 +90,7 @@ void load_song(char *midi, uint id)
 
 	cleanup();
 
-	if(!id)
+	if (!id)
 	{
 		current_id = 0;
 		return;
@@ -114,11 +98,11 @@ void load_song(char *midi, uint id)
 
 	sprintf(tmp, "%s/music/vgmstream/%s.ogg", basedir, midi);
 
-	if(!vgmstream[id])
+	if (!vgmstream[id])
 	{
 		vgmstream[id] = init_vgmstream(tmp);
 
-		if(!vgmstream[id])
+		if (!vgmstream[id])
 		{
 			error("Couldn't open music file: %s\n", tmp);
 			return;
@@ -141,7 +125,7 @@ void load_song(char *midi, uint id)
 	sbdesc.dwReserved = 0;
 	sbdesc.dwBufferBytes = sound_buffer_size;
 
-	if(IDirectSound_CreateSoundBuffer(*directsound, (LPCDSBUFFERDESC)&sbdesc, &sound_buffer, 0))
+	if (IDirectSound_CreateSoundBuffer(*common_externals.directsound, (LPCDSBUFFERDESC)&sbdesc, &sound_buffer, 0))
 	{
 		error("couldn't create sound buffer (%i, %i)\n", vgmstream[id]->channels, vgmstream[id]->sample_rate);
 		sound_buffer = 0;
@@ -154,7 +138,7 @@ void load_song(char *midi, uint id)
 	bytes_written = 0;
 	song_ended = false;
 
-	if(!vgmstream[id]->loop_flag) end_pos = vgmstream[id]->num_samples * bytespersample;
+	if (!vgmstream[id]->loop_flag) end_pos = vgmstream[id]->num_samples * bytespersample;
 
 	current_id = id;
 
@@ -162,14 +146,14 @@ void load_song(char *midi, uint id)
 
 	apply_volume();
 
-	if(IDirectSoundBuffer_Play(sound_buffer, 0, 0, DSBPLAY_LOOPING)) error("couldn't play sound buffer\n");
+	if (IDirectSoundBuffer_Play(sound_buffer, 0, 0, DSBPLAY_LOOPING)) error("couldn't play sound buffer\n");
 }
 
 struct IDirectSoundVtbl vtbl;
 
-ULONG (__stdcall *real_dsound_release)(IDirectSound *);
+ULONG(__stdcall* real_dsound_release)(IDirectSound*);
 
-ULONG __stdcall dsound_release_hook(IDirectSound *this)
+ULONG __stdcall dsound_release_hook(IDirectSound* this)
 {
 	trace("directsound release\n");
 
@@ -178,27 +162,27 @@ ULONG __stdcall dsound_release_hook(IDirectSound *this)
 	return real_dsound_release(this);
 }
 
-void render_thread(void *parameter)
+void render_thread(void* parameter)
 {
-	while(true)
+	while (true)
 	{
 		Sleep(50);
 
 		EnterCriticalSection(&mutex);
 
-		if(*directsound)
+		if (*common_externals.directsound)
 		{
-			if((*directsound)->lpVtbl->Release != dsound_release_hook)
+			if ((*common_externals.directsound)->lpVtbl->Release != dsound_release_hook)
 			{
-				real_dsound_release = (*directsound)->lpVtbl->Release;
-				memcpy(&vtbl, (*directsound)->lpVtbl, sizeof(*((*directsound)->lpVtbl)));
+				real_dsound_release = (*common_externals.directsound)->lpVtbl->Release;
+				memcpy(&vtbl, (*common_externals.directsound)->lpVtbl, sizeof(*((*common_externals.directsound)->lpVtbl)));
 
-				(*directsound)->lpVtbl = &vtbl;
+				(*common_externals.directsound)->lpVtbl = &vtbl;
 
 				vtbl.Release = dsound_release_hook;
 			}
 
-			if(trans_counter > 0)
+			if (trans_counter > 0)
 			{
 				song_volume += trans_step;
 
@@ -206,17 +190,17 @@ void render_thread(void *parameter)
 
 				trans_counter--;
 
-				if(!trans_counter)
+				if (!trans_counter)
 				{
 					song_volume = trans_volume;
 
 					apply_volume();
 
-					if(crossfade_midi)
+					if (crossfade_midi)
 					{
 						load_song(crossfade_midi, crossfade_id);
 
-						if(crossfade_time)
+						if (crossfade_time)
 						{
 							trans_volume = 127;
 							trans_counter = crossfade_time;
@@ -235,18 +219,18 @@ void render_thread(void *parameter)
 				}
 			}
 
-			if(sound_buffer && *directsound)
+			if (sound_buffer && *common_externals.directsound)
 			{
 				uint play_cursor;
 				uint bytes_to_write = 0;
 
 				IDirectSoundBuffer_GetCurrentPosition(sound_buffer, &play_cursor, 0);
 
-				if(!vgmstream[current_id]->loop_flag)
+				if (!vgmstream[current_id]->loop_flag)
 				{
 					uint play_pos = ((bytes_written - write_pointer) - sound_buffer_size) + play_cursor;
 
-					if(play_pos > end_pos && !song_ended)
+					if (play_pos > end_pos && !song_ended)
 					{
 						song_ended = true;
 
@@ -256,9 +240,9 @@ void render_thread(void *parameter)
 					}
 				}
 
-				if(write_pointer < play_cursor) bytes_to_write = play_cursor - write_pointer;
-				else if(write_pointer > play_cursor) bytes_to_write = (sound_buffer_size - write_pointer) + play_cursor;
-				
+				if (write_pointer < play_cursor) bytes_to_write = play_cursor - write_pointer;
+				else if (write_pointer > play_cursor) bytes_to_write = (sound_buffer_size - write_pointer) + play_cursor;
+
 				buffer_bytes(bytes_to_write);
 			}
 		}
@@ -268,15 +252,8 @@ void render_thread(void *parameter)
 }
 
 // called once just after the plugin has been loaded, <plugin_directsound> is a pointer to FF7s own directsound pointer
-__declspec(dllexport) void music_init(void *plugin_trace, void *plugin_info, void *plugin_glitch, void *plugin_error, IDirectSound **plugin_directsound, const char *plugin_basedir)
+void vgm_music_init()
 {
-	trace = plugin_trace;
-	info = plugin_info;
-	glitch = plugin_glitch;
-	error = plugin_error;
-	directsound = plugin_directsound;
-	basedir = plugin_basedir;
-
 	InitializeCriticalSection(&mutex);
 
 	_beginthread(render_thread, 0, 0);
@@ -285,13 +262,13 @@ __declspec(dllexport) void music_init(void *plugin_trace, void *plugin_info, voi
 }
 
 // start playing some music, <midi> is the name of the MIDI file without the .mid extension
-__declspec(dllexport) void play_music(char *midi, uint id)
+void vgm_play_music(char* midi, uint id)
 {
 	trace("play music: %s\n", midi);
 
 	EnterCriticalSection(&mutex);
-	
-	if(id != current_id || song_ended)
+
+	if (id != current_id || song_ended)
 	{
 		close_vgmstream(vgmstream[id]);
 		vgmstream[id] = 0;
@@ -302,7 +279,7 @@ __declspec(dllexport) void play_music(char *midi, uint id)
 	LeaveCriticalSection(&mutex);
 }
 
-__declspec(dllexport) void stop_music()
+void vgm_stop_music()
 {
 	EnterCriticalSection(&mutex);
 
@@ -314,7 +291,7 @@ __declspec(dllexport) void stop_music()
 }
 
 // cross fade to a new song
-__declspec(dllexport) void cross_fade_music(char *midi, uint id, int time)
+void vgm_cross_fade_music(char* midi, uint id, int time)
 {
 	int fade_time = time * 2;
 
@@ -322,9 +299,9 @@ __declspec(dllexport) void cross_fade_music(char *midi, uint id, int time)
 
 	EnterCriticalSection(&mutex);
 
-	if(id != current_id || song_ended)
+	if (id != current_id || song_ended)
 	{
-		if(!song_ended && fade_time)
+		if (!song_ended && fade_time)
 		{
 			trans_volume = 0;
 			trans_counter = fade_time;
@@ -345,20 +322,20 @@ __declspec(dllexport) void cross_fade_music(char *midi, uint id, int time)
 	LeaveCriticalSection(&mutex);
 }
 
-__declspec(dllexport) void pause_music()
+void vgm_pause_music()
 {
 	EnterCriticalSection(&mutex);
 
-	if(sound_buffer) IDirectSoundBuffer_Stop(sound_buffer);
+	if (sound_buffer) IDirectSoundBuffer_Stop(sound_buffer);
 
 	LeaveCriticalSection(&mutex);
 }
 
-__declspec(dllexport) void resume_music()
+void vgm_resume_music()
 {
 	EnterCriticalSection(&mutex);
 
-	if(sound_buffer && !song_ended) IDirectSoundBuffer_Play(sound_buffer, 0, 0, DSBPLAY_LOOPING);
+	if (sound_buffer && !song_ended) IDirectSoundBuffer_Play(sound_buffer, 0, 0, DSBPLAY_LOOPING);
 
 	LeaveCriticalSection(&mutex);
 }
@@ -367,7 +344,7 @@ __declspec(dllexport) void resume_music()
 // it's important for some field scripts that this function returns true atleast once when a song has been requested
 // 
 // even if there's nothing to play because of errors/missing files you cannot return false every time
-__declspec(dllexport) bool music_status()
+bool vgm_music_status()
 {
 	static bool last_status;
 	bool status;
@@ -376,7 +353,7 @@ __declspec(dllexport) bool music_status()
 
 	status = !song_ended;
 
-	if(!sound_buffer)
+	if (!sound_buffer)
 	{
 		last_status = !last_status;
 		return !last_status;
@@ -388,7 +365,7 @@ __declspec(dllexport) bool music_status()
 	return status;
 }
 
-__declspec(dllexport) void set_master_music_volume(int volume)
+void vgm_set_master_music_volume(int volume)
 {
 	EnterCriticalSection(&mutex);
 
@@ -399,7 +376,7 @@ __declspec(dllexport) void set_master_music_volume(int volume)
 	LeaveCriticalSection(&mutex);
 }
 
-__declspec(dllexport) void set_music_volume(int volume)
+void vgm_set_music_volume(int volume)
 {
 	EnterCriticalSection(&mutex);
 
@@ -415,7 +392,7 @@ __declspec(dllexport) void set_music_volume(int volume)
 }
 
 // make a volume transition
-__declspec(dllexport) void set_music_volume_trans(int volume, int step)
+void vgm_set_music_volume_trans(int volume, int step)
 {
 	trace("set volume trans: %i (%i)\n", volume, step);
 
@@ -423,7 +400,7 @@ __declspec(dllexport) void set_music_volume_trans(int volume, int step)
 
 	EnterCriticalSection(&mutex);
 
-	if(step < 2)
+	if (step < 2)
 	{
 		trans_volume = 0;
 		trans_counter = 0;
@@ -441,13 +418,13 @@ __declspec(dllexport) void set_music_volume_trans(int volume, int step)
 	LeaveCriticalSection(&mutex);
 }
 
-__declspec(dllexport) void set_music_tempo(unsigned char tempo)
+void vgm_set_music_tempo(unsigned char tempo)
 {
 	uint dstempo;
 
 	EnterCriticalSection(&mutex);
 
-	if(sound_buffer)
+	if (sound_buffer)
 	{
 		dstempo = (vgmstream[current_id]->sample_rate * (tempo + 480)) / 512;
 

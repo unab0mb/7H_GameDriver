@@ -1,16 +1,5 @@
 #define inline _inline
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libswresample/swresample.h>
-#include <windows.h>
-#include <gl/glew.h>
-#include <math.h>
-#include <sys/timeb.h>
-#include <dsound.h>
-#include <dbghelp.h>
-
-#include "types.h"
+#include "ffmpeg_movies.h"
 
 // 10 frames
 #define VIDEO_BUFFER_SIZE 10
@@ -214,22 +203,12 @@ void ffmpeg_log_callback(void* ptr, int level, const char* fmt, va_list vl)
 	}
 }
 
-__declspec(dllexport) void movie_init(void *plugin_trace, void *plugin_info, void *plugin_glitch, void *plugin_error, void *plugin_draw_movie_quad_bgra, void *plugin_draw_movie_quad_yuv, IDirectSound **plugin_directsound, bool plugin_skip_frames, bool plugin_movie_sync_debug)
+void ffmpeg_movie_init()
 {
 	av_register_all();
 
 	av_log_set_level(AV_LOG_VERBOSE);
 	av_log_set_callback(ffmpeg_log_callback);
-
-	trace = plugin_trace;
-	info = plugin_info;
-	glitch = plugin_glitch;
-	error = plugin_error;
-	draw_movie_quad_bgra = plugin_draw_movie_quad_bgra;
-	draw_movie_quad_yuv = plugin_draw_movie_quad_yuv;
-	directsound = plugin_directsound;
-	skip_frames = plugin_skip_frames;
-	movie_sync_debug = plugin_movie_sync_debug;
 
 	info("FFMpeg movie player plugin loaded\n");
 	info("FFMpeg version 4.2.1, Copyright (c) 2000-2019 Fabrice Bellard, et al.\n");
@@ -247,7 +226,7 @@ __declspec(dllexport) void movie_init(void *plugin_trace, void *plugin_info, voi
 }
 
 // clean up anything we have allocated
-__declspec(dllexport) void release_movie_objects()
+void ffmpeg_release_movie_objects()
 {
 	uint i;
 
@@ -255,7 +234,7 @@ __declspec(dllexport) void release_movie_objects()
 	if (codec_ctx) avcodec_close(codec_ctx);
 	if (acodec_ctx) avcodec_close(acodec_ctx);
 	if (format_ctx) avformat_close_input(&format_ctx);
-	if (sound_buffer && *directsound) IDirectSoundBuffer_Release(sound_buffer);
+	if (sound_buffer && *common_externals.directsound) IDirectSoundBuffer_Release(sound_buffer);
 	if (swr_ctx) {
 		swr_close(swr_ctx);
 		swr_free(&swr_ctx);
@@ -281,7 +260,7 @@ __declspec(dllexport) void release_movie_objects()
 }
 
 // prepare a movie for playback
-__declspec(dllexport) uint prepare_movie(char *name)
+ uint ffmpeg_prepare_movie(char *name)
 {
 	uint i;
 	WAVEFORMATEX sound_format;
@@ -291,14 +270,14 @@ __declspec(dllexport) uint prepare_movie(char *name)
 	if(ret = avformat_open_input(&format_ctx, name, NULL, NULL))
 	{
 		error("prepare_movie: couldn't open movie file: %s\n", name);
-		release_movie_objects();
+		ffmpeg_release_movie_objects();
 		goto exit;
 	}
 
 	if(avformat_find_stream_info(format_ctx, NULL) < 0)
 	{
 		error("prepare_movie: couldn't find stream info\n");
-		release_movie_objects();
+		ffmpeg_release_movie_objects();
 		goto exit;
 	}
 
@@ -313,7 +292,7 @@ __declspec(dllexport) uint prepare_movie(char *name)
 	if(videostream == -1)
 	{
 		error("prepare_movie: no video stream found\n");
-		release_movie_objects();
+		ffmpeg_release_movie_objects();
 		goto exit;
 	}
 
@@ -326,14 +305,14 @@ __declspec(dllexport) uint prepare_movie(char *name)
 	{
 		error("prepare_movie: no video codec found\n");
 		codec_ctx = 0;
-		release_movie_objects();
+		ffmpeg_release_movie_objects();
 		goto exit;
 	}
 
 	if(avcodec_open2(codec_ctx, codec, NULL) < 0)
 	{
 		error("prepare_movie: couldn't open video codec\n");
-		release_movie_objects();
+		ffmpeg_release_movie_objects();
 		goto exit;
 	}
 
@@ -344,14 +323,14 @@ __declspec(dllexport) uint prepare_movie(char *name)
 		if(!acodec)
 		{
 			error("prepare_movie: no audio codec found\n");
-			release_movie_objects();
+			ffmpeg_release_movie_objects();
 			goto exit;
 		}
 
 		if(avcodec_open2(acodec_ctx, acodec, NULL) < 0)
 		{
 			error("prepare_movie: couldn't open audio codec\n");
-			release_movie_objects();
+			ffmpeg_release_movie_objects();
 			goto exit;
 		}
 	}
@@ -369,7 +348,7 @@ __declspec(dllexport) uint prepare_movie(char *name)
 	if(movie_width > max_texture_size || movie_height > max_texture_size)
 	{
 		error("prepare_movie: movie dimensions exceed max texture size, skipping\n");
-		release_movie_objects();
+		ffmpeg_release_movie_objects();
 		goto exit;
 	}
 
@@ -434,7 +413,7 @@ __declspec(dllexport) uint prepare_movie(char *name)
 		sbdesc.dwReserved = 0;
 		sbdesc.dwBufferBytes = sound_buffer_size;
 
-		if(ret = IDirectSound_CreateSoundBuffer(*directsound, (LPCDSBUFFERDESC)&sbdesc, &sound_buffer, 0))
+		if(ret = IDirectSound_CreateSoundBuffer(*common_externals.directsound, (LPCDSBUFFERDESC)&sbdesc, &sound_buffer, 0))
 		{
 			error("prepare_movie: couldn't create sound buffer (%i, %i, %i, %i)\n", acodec_ctx->sample_fmt, acodec_ctx->bit_rate, acodec_ctx->sample_rate, acodec_ctx->channels);
 			sound_buffer = 0;
@@ -452,9 +431,9 @@ exit:
 }
 
 // stop movie playback, no video updates will be requested after this so all we have to do is stop the audio
-__declspec(dllexport) void stop_movie()
+void ffmpeg_stop_movie()
 {
-	if(sound_buffer && *directsound) IDirectSoundBuffer_Stop(sound_buffer);
+	if(sound_buffer && *common_externals.directsound) IDirectSoundBuffer_Stop(sound_buffer);
 }
 
 void buffer_bgra_frame(char *data, int upload_stride)
@@ -485,7 +464,7 @@ void buffer_bgra_frame(char *data, int upload_stride)
 
 void draw_bgra_frame(uint buffer_index)
 {
-	draw_movie_quad_bgra(video_buffer[buffer_index].bgra_texture, movie_width, movie_height);
+	gl_draw_movie_quad_bgra(video_buffer[buffer_index].bgra_texture, movie_width, movie_height);
 }
 
 void upload_yuv_texture(char **planes, uint *strides, uint num, uint buffer_index)
@@ -535,11 +514,11 @@ void draw_yuv_frame(uint buffer_index, bool full_range)
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, video_buffer[buffer_index].yuv_textures[0]);
 
-	draw_movie_quad_yuv(video_buffer[buffer_index].yuv_textures, movie_width, movie_height, full_range);
+	gl_draw_movie_quad_yuv(video_buffer[buffer_index].yuv_textures, movie_width, movie_height, full_range);
 }
 
 // display the next frame
-__declspec(dllexport) bool update_movie_sample()
+bool ffmpeg_update_movie_sample()
 {
 	AVPacket packet;
 	bool frame_finished;
@@ -723,20 +702,20 @@ __declspec(dllexport) bool update_movie_sample()
 }
 
 // draw the current frame, don't update anything
-__declspec(dllexport) void draw_current_frame()
+void ffmpeg_draw_current_frame()
 {
 	if(use_bgra_texture) draw_bgra_frame((vbuffer_read - 1) % VIDEO_BUFFER_SIZE);
 	else draw_yuv_frame((vbuffer_read - 1) % VIDEO_BUFFER_SIZE, codec_ctx->color_range == AVCOL_RANGE_JPEG);
 }
 
 // loop back to the beginning of the movie
-__declspec(dllexport) void loop()
+void ffmpeg_loop()
 {
 	if(format_ctx) avformat_seek_file(format_ctx, -1, 0, 0, 0, 0);
 }
 
 // get the current frame number
-__declspec(dllexport) uint get_movie_frame()
+uint ffmpeg_get_movie_frame()
 {
 	if(movie_fps != 15.0 && movie_fps < 100.0) return (uint)ceil(movie_frame_counter * 15.0 / movie_fps);
 	else return movie_frame_counter;

@@ -1,5 +1,5 @@
 /* 
- * ff7_opengl - Complete OpenGL replacement of the Direct3D renderer used in 
+ * 7H_GameDriver - Complete OpenGL replacement of the Direct3D renderer used in 
  * the original ports of Final Fantasy VII and Final Fantasy VIII for the PC.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,6 +44,7 @@ enum ff8_game_modes
 	FF8_MODE_11,
 	FF8_MODE_INTRO,
 	FF8_MODE_100 = 100,
+	FF8_MODE_BATTLE = 999
 };
 
 /*
