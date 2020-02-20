@@ -91,7 +91,9 @@ bool show_applog = true;
 bool direct_mode = true;
 bool show_missing_textures = false;
 bool ff7_popup = false;
+bool error_popup = false;
 bool info_popup = false;
+bool glitch_popup = false;
 char *load_library;
 bool opengl_debug = false;
 bool movie_sync_debug = false;
@@ -158,7 +160,9 @@ cfg_opt_t opts[] = {
 		CFG_SIMPLE_BOOL("direct_mode", &direct_mode),
 		CFG_SIMPLE_BOOL("show_missing_textures", &show_missing_textures),
 		CFG_SIMPLE_BOOL("ff7_popup", &ff7_popup),
+		CFG_SIMPLE_BOOL("error_popup", &error_popup),
 		CFG_SIMPLE_BOOL("info_popup", &info_popup),
+		CFG_SIMPLE_BOOL("glitch_popup", &glitch_popup),
 		CFG_SIMPLE_STR("load_library", &load_library),
 		CFG_SIMPLE_BOOL("opengl_debug", &opengl_debug),
 		CFG_SIMPLE_BOOL("movie_sync_debug", &movie_sync_debug),

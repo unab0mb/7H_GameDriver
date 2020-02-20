@@ -349,7 +349,7 @@ struct tex_header *sub_673F5C(struct struc_91 *struc91)
 {
 	if(trace_all) trace("sub_673F5C: 0x%x\n", struc91);
 
-	if(struc91->field_0 == 2) glitch_once("unsupported framebuffer operation\n");
+	if(struc91->field_0 == 2) glitch("unsupported framebuffer operation\n");
 
 	return make_framebuffer_tex(struc91->width, struc91->height, struc91->x_offset, struc91->y_offset, struc91->width * struc91->xscale, struc91->height * struc91->yscale, struc91->color_key);
 }
