@@ -153,7 +153,8 @@ void debug_printf(const char *prefix, bool popup, uint color, const char *fmt, .
 	_snprintf(tmp_str2, sizeof(tmp_str2), "%s: %s", prefix, tmp_str);
 	debug_print(tmp_str2);
 
-#ifdef DEBUG
+//At modders' requests, allow pop ups.
+//#ifdef DEBUG
 	if(popup)
 	{
 		static char *popup_log[POPUP_LOG_LENGTH];
@@ -175,7 +176,7 @@ void debug_printf(const char *prefix, bool popup, uint color, const char *fmt, .
 		popup_ttl = POPUP_TTL_MAX;
 		popup_color = color;
 	}
-#endif
+//#endif
 }
 
 void windows_error(uint error)
