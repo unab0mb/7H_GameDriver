@@ -23,7 +23,7 @@ generate_product_version(
     VERSION_MAJOR 1
     VERSION_MINOR 0
     VERSION_PATH 0
-    VERSION_REVISION 3
+    VERSION_REVISION 4
 )
 
 add_library(7H_GameDriver SHARED ${source_files} ${VersionFilesOutputVariable})

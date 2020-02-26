@@ -7,7 +7,7 @@
       "inheritEnvironments": [ "msvc_x86_x64" ],
       "buildRoot": "${projectDir}\\.dist\\build\\${name}",
       "installRoot": "${projectDir}\\.dist\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Release -D_DLL_VERSION=1.0.0.3",
+      "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Release -D_DLL_VERSION=1.0.0.4",
       "buildCommandArgs": "-v:normal",
       "ctestCommandArgs": "",
       "variables": []

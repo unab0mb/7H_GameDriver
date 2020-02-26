@@ -1110,9 +1110,9 @@ bool common_write_palette(uint source_offset, uint size, void *source, uint dest
 	{
 		if((uint)VREF(tex_header, file.pc_name) > 32)
 		{
-			glitch("missed palette write to external texture %s\n", VREF(tex_header, file.pc_name));
+			glitch_once("missed palette write to external texture %s\n", VREF(tex_header, file.pc_name));
 		}
-		else glitch("missed palette write to external texture\n");
+		else glitch_once("missed palette write to external texture\n");
 	}
 
 	stats.palette_writes++;
@@ -1475,7 +1475,7 @@ void common_end_scene(struct game_obj *game_object)
 // noop
 void common_field_90(uint unknown)
 {
-	glitch("dll_gfx: field_90 (not implemented)\n");
+	glitch_once("dll_gfx: field_90 (not implemented)\n");
 }
 
 // helper function used to draw a set of triangles without palette data
@@ -1611,7 +1611,7 @@ void common_draw_lines(struct polygon_set *polygon_set, struct indexed_vertices 
 // noop
 void common_field_EC(struct game_obj *game_object)
 {
-	glitch("dll_gfx: field_EC (not implemented)\n");
+	glitch_once("dll_gfx: field_EC (not implemented)\n");
 }
 
 // create a suitable tex header to be processed by the framebuffer texture loader
